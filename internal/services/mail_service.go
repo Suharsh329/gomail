@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gomail/internal/config"
+	"log"
 	"mime/multipart"
 	"net/http"
 )
@@ -89,8 +90,14 @@ func (s *MailService) SendMail(_from, _to, _subject, _text, template string, _re
 	// Send the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
+
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Mailgun response: %v", resp)
+		return nil, fmt.Errorf("mailgun request failed with status: %v", resp.Status)
 	}
 
 	return resp, nil
