@@ -20,7 +20,7 @@ func LoadEnv() {
 
 	// load .env file from project root
 	if err := godotenv.Load(Root + "/.env"); err != nil {
-		log.Fatalf("Config: %v", err)
+		log.Printf("Config: %v", err)
 	}
 }
 
