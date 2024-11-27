@@ -11,7 +11,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mailService := services.NewMailService(false)
 	mailHandler := handlers.NewMailHandler(mailService)
 
-	mux.Handle("POST /mail", middleware.PerClientRateLimiter(mailHandler.PostMail))
+	mux.Handle("POST /mail/games", middleware.PerClientRateLimiter(mailHandler.PostGameMail))
 
 	healthHandler := handlers.NewHealthHandler()
 	mux.Handle("GET /health", middleware.PerClientRateLimiter(healthHandler.HealthCheck))

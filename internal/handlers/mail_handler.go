@@ -17,7 +17,7 @@ func NewMailHandler(service *services.MailService) *MailHandler {
 	return &MailHandler{Service: service}
 }
 
-func (h *MailHandler) PostMail(w http.ResponseWriter, r *http.Request) {
+func (h *MailHandler) PostGameMail(w http.ResponseWriter, r *http.Request) {
 	var mailBody models.MailBody
 
 	err := json.NewDecoder(r.Body).Decode(&mailBody)
@@ -27,7 +27,20 @@ func (h *MailHandler) PostMail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.Service.SendMail(mailBody.From, mailBody.To, mailBody.Subject, mailBody.Text, mailBody.Template, mailBody.RecipientVariables)
+	from := mailBody.Game + "- Commando Lizard"
+
+	var template string
+
+	switch mailBody.Game {
+	case "Mafia":
+		template = "mafia-game"
+	case "Impostor":
+		template = "impostor-game"
+	default:
+		template = "mafia-game"
+	}
+
+	_, err = h.Service.SendMail(from, mailBody.To, "", "", template, mailBody.RecipientVariables)
 	if err != nil {
 		utils.Response(w, http.StatusInternalServerError, "Internal server error")
 		return
