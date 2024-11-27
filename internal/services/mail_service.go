@@ -48,11 +48,8 @@ func (s *MailService) SendMail(_from, _to, _subject, _text, template string, _re
 	subject := _subject
 	text := _text
 
-	// Define recipient variables
-	recipientVariables := _recipientVariables
-
 	// Convert recipient variables to JSON string
-	recipientVariablesJSON, err := json.Marshal(recipientVariables)
+	recipientVariablesJSON, err := json.Marshal(_recipientVariables)
 	if err != nil {
 		fmt.Println("Error marshalling recipient variables:", err)
 		return nil, err

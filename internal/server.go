@@ -22,12 +22,7 @@ func Run() {
 
 	cors := config.Cors()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8000"
-	} else {
-		port = ":" + port
-	}
+	port := ":" + config.GetEnvWithKey("PORT", "8000")
 
 	server := &http.Server{
 		Addr:    port,
