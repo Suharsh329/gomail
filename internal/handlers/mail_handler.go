@@ -40,7 +40,11 @@ func (h *MailHandler) PostGameMail(w http.ResponseWriter, r *http.Request) {
 		template = "mafia-game"
 	}
 
-	_, err = h.Service.SendMail(from, mailBody.To, "", "", template, mailBody.RecipientVariables)
+	if mailBody.Game == "Impostor" {
+		_, err = h.Service.SendMailWithVariables(from, mailBody.To, "", "", template, mailBody.RecipientVariables)
+	} else {
+		_, err = h.Service.SendMail(from, mailBody.To, "", "", template, mailBody.RecipientVariables)
+	}
 	if err != nil {
 		utils.Response(w, http.StatusInternalServerError, "Internal server error")
 		return

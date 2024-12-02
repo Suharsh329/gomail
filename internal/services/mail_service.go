@@ -99,3 +99,84 @@ func (s *MailService) SendMail(_from, _to, _subject, _text, template string, _re
 
 	return resp, nil
 }
+
+func (s *MailService) SendMailWithVariables(_from, _to, _subject, _text, template string, _recipientVariables map[string]map[string]string) (*http.Response, error) {
+
+	mailgunApiKey, mailgunDomainName, mailgunRoute, err := getEnvVariables()
+
+	if err != nil {
+		return nil, err
+	}
+
+	from := _from + " <postmaster@" + mailgunDomainName + ">"
+	subject := _subject
+	text := _text
+
+	// Convert recipient variables to JSON string
+	recipientVariablesJSON, err := json.Marshal(_recipientVariables)
+	if err != nil {
+		fmt.Println("Error marshalling recipient variables:", err)
+		return nil, err
+	}
+
+	// Traverse through recipientVariablesJSON
+	var recipientVariables map[string]map[string]string
+	err = json.Unmarshal(recipientVariablesJSON, &recipientVariables)
+	if err != nil {
+		fmt.Println("Error unmarshalling recipient variables:", err)
+		return nil, err
+	}
+
+	for recipient, variables := range recipientVariables {
+		fmt.Printf("Recipient: %s\n", recipient)
+		// Create JSON using key, value
+		variablesJSON, err := json.Marshal(variables)
+		if err != nil {
+			fmt.Println("Error marshalling variables:", err)
+			return nil, err
+		}
+
+		// Create the POST body with multipart form data for each recipient
+		var b bytes.Buffer
+		writer := multipart.NewWriter(&b)
+
+		// Add form fields
+		_ = writer.WriteField("from", from)
+		_ = writer.WriteField("to", recipient)
+		_ = writer.WriteField("subject", subject)
+		_ = writer.WriteField("text", text)
+		_ = writer.WriteField("template", template)
+		_ = writer.WriteField("t:variables", string(variablesJSON))
+
+		if s.IsTest {
+			_ = writer.WriteField("o:testmode", "yes")
+		}
+
+		// Close the writer
+		writer.Close()
+
+		// Prepare the request
+		req, err := http.NewRequest("POST", mailgunRoute, &b)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the necessary headers (including Basic Authentication)
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+		req.SetBasicAuth("api", mailgunApiKey)
+
+		// Send the request
+		client := &http.Client{}
+		resp, err := client.Do(req)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("Mailgun response: %v", resp)
+			return nil, fmt.Errorf("mailgun request failed with status: %v", resp.Status)
+		}
+	}
+	return nil, nil
+}
