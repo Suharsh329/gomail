@@ -2,6 +2,7 @@ package services
 
 import (
 	"gomail/internal/config"
+	"gomail/internal/models"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -29,8 +30,19 @@ func TestSendMail(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(handler))
 	defer server.Close()
 
+	mailBody := models.MailBody{
+		From:               "from",
+		To:                 "test@example.com",
+		Subject:            "Test Subject",
+		Text:               "",
+		Template:           "mafia-game",
+		RecipientVariables: map[string]map[string]string{"test@test.com": {"name": "Test", "role": "Developer"}},
+		Variables:          map[string]string{},
+		Game:               "Mafia",
+	}
+
 	// Call SendMail
-	resp, err := service.SendMail("from", "to@example.com", "Test Subject", "Test Body", "mafia-game", map[string]map[string]string{"suharsh329": {"name": "Suharsh", "role": "Developer"}})
+	resp, err := service.SendMail(mailBody)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 		return

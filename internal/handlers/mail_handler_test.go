@@ -11,14 +11,19 @@ import (
 	"testing"
 )
 
-func TestPostGameMail_Success(t *testing.T) {
+func TestPostMail_Success(t *testing.T) {
 	mockService := services.NewMailService(true)
 	handler := NewMailHandler(mockService)
 	config.LoadEnv()
 
 	mailBody := models.MailBody{
-		To:                 "recipient@example.com",
-		RecipientVariables: map[string]map[string]string{"recipient@example.com": {"value": "Recipient"}},
+		From:               "from",
+		To:                 "test@example.com",
+		Subject:            "Test Subject",
+		Text:               "",
+		Template:           "mafia-game",
+		RecipientVariables: map[string]map[string]string{"test@example.com": {"name": "Test", "role": "Developer"}},
+		Variables:          map[string]string{},
 		Game:               "Mafia",
 	}
 
@@ -29,7 +34,7 @@ func TestPostGameMail_Success(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler.PostGameMail(rr, req)
+	handler.PostMail(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
